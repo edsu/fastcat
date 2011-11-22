@@ -14,11 +14,15 @@ file that dbpedia make available based on the Wikipedia MySQL
 Usage
 -----
 
-When you first `import fastcat` the SKOS file will be downloaded and loaded 
-into your redis instance. After that you'll be able to:
+The first time you import fastcat you'll need to populate your redis database
+with the category data from dbpedia. To do that instantiate a FastCat object
+and call the `load` method. After that you can use it to do lookups.
 
 ```python
 >>> import fastcat
+>>> f = fastcat.FastCat()
+>>> f.load()
+...
 >>> print fastcat.broader("Computer programming")
 ['Software engineering', 'Computing']
 >>> print fastcat.narrower("Computer programming")

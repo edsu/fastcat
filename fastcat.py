@@ -8,55 +8,55 @@ import urllib
 import redis
 
 skos_file = "skos.nt.bz2"
-db = redis.Redis()
 
-def broader(cat):
-    """Pass in a Wikipedia category and get back a list of broader Wikipedia
-    categories.
-    """
-    return list(db.smembers("b:%s" % cat))
+class FastCat(object):
 
-def narrower(cat):
-    """Pass in a Wikipedia category and get back a list of narrower Wikipedia
-    categories.
-    """
-    return list(db.smembers("n:%s" % cat))
+    def __init__(self, db=None):
+        if db == None:
+            db = redis.Redis()
+        self.db = db
 
-def load_db():
-    if not os.path.isfile(skos_file):
-        download()
+    def broader(self, cat):
+        """Pass in a Wikipedia category and get back a list of broader Wikipedia
+        categories.
+        """
+        return list(self.db.smembers("b:%s" % cat))
 
-    p = re.compile('^<(.+)> <(.+)> <(.+)> \.$') 
-    for line in bz2.BZ2File(skos_file):
-        m = re.match(p, line.strip())
-        
-        if not m: continue
-        s, p, o = m.groups()
+    def narrower(self, cat):
+        """Pass in a Wikipedia category and get back a list of narrower Wikipedia
+        categories.
+        """
+        return list(self.db.smembers("n:%s" % cat))
 
-        # only interested in broader relation
-        if p != "http://www.w3.org/2004/02/skos/core#broader":
-            continue
+    def load(self):
+        if not os.path.isfile(skos_file):
+            self.download()
 
-        add(name(s), name(o))
+        ntriple_pattern = re.compile('^<(.+)> <(.+)> <(.+)> \.$') 
+        for line in bz2.BZ2File(skos_file):
+            line = line.strip()
+            m = ntriple_pattern.match(line)
+            
+            if not m: 
+                continue
+            s, p, o = m.groups()
 
-def add(narrower, broader):
-    db.sadd("b:%s" % narrower, broader)
-    db.sadd("n:%s" % broader, narrower)
-    print ("added %s -> %s" % (broader, narrower)).encode('utf-8')
+            # only interested in broader relation
+            if p != "http://www.w3.org/2004/02/skos/core#broader":
+                continue
 
-def download():
-    print "downloading wikipedia skos file from dbpedia"
-    url = "http://downloads.dbpedia.org/current/en/skos_categories_en.nt.bz2"
-    urllib.urlretrieve(url, skos_file)
+            self._add(self.name(s), self.name(o))
 
-def name(cat_url):
-    m = re.search("^http://dbpedia.org/resource/Category:(.+)$", cat_url)
-    return urllib.unquote(m.group(1).replace("_", " ")).decode("utf-8")
+    def _add(self, narrower, broader):
+        self.db.sadd("b:%s" % narrower, broader)
+        self.db.sadd("n:%s" % broader, narrower)
+        print ("added %s -> %s" % (broader, narrower)).encode('utf-8')
 
+    def download(self):
+        print "downloading wikipedia skos file from dbpedia"
+        url = "http://downloads.dbpedia.org/current/en/skos_categories_en.nt.bz2"
+        urllib.urlretrieve(url, skos_file)
 
-# first time this module is loaded it'll try to download the skos file 
-# and load it into Redis
-
-if not db.get("cat-loaded"):
-    load_db()
-    db.set("cat-loaded", "1")
+    def name(self, cat_url):
+        m = re.search("^http://dbpedia.org/resource/Category:(.+)$", cat_url)
+        return urllib.unquote(m.group(1).replace("_", " ")).decode("utf-8")
