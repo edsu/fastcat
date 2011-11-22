@@ -1,14 +1,14 @@
 import unittest
 
-import cat
+import fastcat
 
-class CatTests(unittest.TestCase):
+class FastcatTests(unittest.TestCase):
     
     def test_narrower(self):
-        self.assertTrue("Functional languages" in cat.narrower("Functional programming"))
+        self.assertTrue("Functional languages" in fastcat.narrower("Functional programming"))
 
     def test_broader(self):
-        self.assertTrue("Computing" in cat.broader("Computer programming"))
+        self.assertTrue("Computing" in fastcat.broader("Computer programming"))
 
 if __name__ == "__main__":
     unittest.main()

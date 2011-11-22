@@ -1,7 +1,7 @@
-cat
-===
+fastcat
+=======
 
-cat is a little Python library for quickly looking up broader/narrower 
+fastcat is a little Python library for quickly looking up broader/narrower 
 relations in Wikipedia categories locally. It relies on redis, and a 
 [SKOS](http://downloads.dbpedia.org/current/en/skos_categories_en.nt.bz2) 
 file that dbpedia make available based on the Wikipedia MySQL dumps.
@@ -10,14 +10,14 @@ file that dbpedia make available based on the Wikipedia MySQL dumps.
 Usage
 -----
 
-When you first `import cat` the SKOS file will be downloaded and loaded into
-your redis instance. After that you'll be able to:
+When you first `import fastcat` the SKOS file will be downloaded and loaded 
+into your redis instance. After that you'll be able to:
 
 ```python
->>> import cat
->>> print cat.broader("Computer programming")
+>>> import fastcat
+>>> print fastcat.broader("Computer programming")
 ['Software engineering', 'Computing']
->>> print cat.narrower("Computer programming")
+>>> print fastcat.narrower("Computer programming")
 ['Programming idioms', 'Programming languages', 'Concurrent computing', 'Source code', 'Refactoring', 'Data structures', 'Programming games', 'Computer programmers', 'Version control', 'Anti-patterns', 'Programming constructs', 'Algorithms', 'Web Services tools', 'Programming paradigms', 'Software optimization', 'Debugging', 'Computer programming tools', 'Computer libraries', 'Programming contests', 'Archive networks', 'Self-hosting software', 'Educational abstract machines', 'Software design patterns', 'Computer arithmetic']
 ```
 
