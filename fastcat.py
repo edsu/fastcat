@@ -7,7 +7,9 @@ import urllib
 
 import redis
 
+articles_file = "articles.nt.bz2"
 skos_file = "skos.nt.bz2"
+ntriple_pattern = re.compile('^<(.+)> <(.+)> <(.+)> \.\n$') 
 
 class FastCat(object):
 
@@ -29,34 +31,75 @@ class FastCat(object):
         return list(self.db.smembers("n:%s" % cat))
 
     def load(self):
-        if not os.path.isfile(skos_file):
-            self.download()
+        self.load_skos()
+        self.load_articles()
 
-        ntriple_pattern = re.compile('^<(.+)> <(.+)> <(.+)> \.$') 
+    def load_skos(self):
+        if self.db.get("loaded-skos"):
+            return 
+
+        if not os.path.isfile(skos_file):
+            self.download_skos()
+
+        print "loading %s" % skos_file
         for line in bz2.BZ2File(skos_file):
-            line = line.strip()
             m = ntriple_pattern.match(line)
             
             if not m: 
                 continue
-            s, p, o = m.groups()
 
-            # only interested in broader relation
+            s, p, o = m.groups()
             if p != "http://www.w3.org/2004/02/skos/core#broader":
                 continue
 
-            self._add(self.name(s), self.name(o))
+            narrower = self._category_name(s)
+            broader = self._category_name(o)
+            self.db.sadd("b:%s" % narrower, broader)
+            self.db.sadd("n:%s" % broader, narrower)
+            print ("added %s -> %s" % (broader, narrower)).encode('utf-8')
 
-    def _add(self, narrower, broader):
-        self.db.sadd("b:%s" % narrower, broader)
-        self.db.sadd("n:%s" % broader, narrower)
-        print ("added %s -> %s" % (broader, narrower)).encode('utf-8')
+        self.db.set("loaded-skos", "1")
 
-    def download(self):
+    def load_articles(self):
+        if self.db.get("loaded-articles"):
+            return
+
+        if not os.path.isfile(articles_file):
+            self.download_articles()
+
+        print "loading %s" % articles_file
+        for line in bz2.BZ2File(articles_file):
+            m = ntriple_pattern.match(line)
+            
+            if not m: 
+                print line
+                continue
+            s, p, o = m.groups()
+            if p != "http://purl.org/dc/terms/subject":
+                continue
+            
+            page = self._article_name(s)
+            category = self._category_name(o)
+            self.db.sadd("p:%s" % page, category)
+            self.db.sadd("c:%s" % category, page)
+            print ("added page %s (%s)" % (page, category)).encode('utf-8')
+
+        self.db.set("loaded-articles", "1")
+
+    def download_skos(self):
         print "downloading wikipedia skos file from dbpedia"
         url = "http://downloads.dbpedia.org/current/en/skos_categories_en.nt.bz2"
         urllib.urlretrieve(url, skos_file)
 
-    def name(self, cat_url):
-        m = re.search("^http://dbpedia.org/resource/Category:(.+)$", cat_url)
+    def download_articles(self):
+        print "downloading article categories file from dbpedia"
+        url = "http://downloads.dbpedia.org/current/en/article_categories_en.nt.bz2"
+        urllib.urlretrieve(url, skos_file)
+
+    def _article_name(self, url):
+        m = re.search("^http://dbpedia.org/resource/(.+)$", url)
+        return urllib.unquote(m.group(1).replace("_", " ")).decode("utf-8")
+
+    def _category_name(self, url):
+        m = re.search("^http://dbpedia.org/resource/Category:(.+)$", url)
         return urllib.unquote(m.group(1).replace("_", " ")).decode("utf-8")
