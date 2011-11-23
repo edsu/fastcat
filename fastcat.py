@@ -32,7 +32,8 @@ class FastCat(object):
 
     def load(self):
         self.load_skos()
-        self.load_articles()
+        # disabling this unless it can be more memory efficient
+        #self.load_articles()
 
     def load_skos(self):
         if self.db.get("loaded-skos"):
