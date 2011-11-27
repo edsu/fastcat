@@ -13,4 +13,6 @@ class FastcatTests(unittest.TestCase):
         self.assertTrue("Computing" in f.broader("Computer programming"))
 
 if __name__ == "__main__":
+    f = fastcat.FastCat()
+    f.load()
     unittest.main()
