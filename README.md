@@ -29,6 +29,20 @@ and call the `load` method. After that you can use it to do lookups.
 ['Programming idioms', 'Programming languages', 'Concurrent computing', 'Source code', 'Refactoring', 'Data structures', 'Programming games', 'Computer programmers', 'Version control', 'Anti-patterns', 'Programming constructs', 'Algorithms', 'Web Services tools', 'Programming paradigms', 'Software optimization', 'Debugging', 'Computer programming tools', 'Computer libraries', 'Programming contests', 'Archive networks', 'Self-hosting software', 'Educational abstract machines', 'Software design patterns', 'Computer arithmetic']
 ```
 
+Install
+-------
+
+To install and load fastcat on Ubuntu try this:
+
+1. apt-get install redis-server virtualenvwrapper git-core
+1. git clone git://github.com/edsu/fastcat.git
+1. cd fastcat
+1. mkvirtualenv fastcat
+1. pip install -r requirements.pip
+1. ./load.py
+1. brew a pot of coffee while the data is downloaded and loaded into redis
+1. profit?
+
 License
 -------
 
